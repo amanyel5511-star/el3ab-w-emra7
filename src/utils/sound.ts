@@ -1,5 +1,5 @@
 // Web Audio Synth & Robust Arabic Speech Helper for Kids App (Cross-Platform Web + Android + iOS)
-import { getSharedAudioContext, unlockAudioSystem, logAudioError, getSharedHTMLAudio } from './audioCore';
+import { getSharedAudioContext, unlockAudioSystem, logAudioError } from './audioCore';
 import { speechManager } from './SpeechManager';
 
 class SoundManager {
@@ -173,15 +173,7 @@ class SoundManager {
     const audioUrl = `/audio/feedback/${filename}`;
     return new Promise((resolve) => {
       try {
-        const shared = getSharedHTMLAudio();
-        const audio = shared || new Audio();
-        audio.pause();
-        try {
-          audio.currentTime = 0;
-        } catch {
-          // ignore seeking before load
-        }
-        audio.src = audioUrl;
+        const audio = new Audio(audioUrl);
         audio.setAttribute('playsinline', 'true');
         audio.setAttribute('webkit-playsinline', 'true');
 

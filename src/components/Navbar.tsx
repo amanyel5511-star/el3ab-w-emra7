@@ -81,6 +81,20 @@ export const Navbar: React.FC<Props> = ({
 
           {/* Kid Profile Badge Card + Settings */}
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            {/* Temporary Test MP3 Button */}
+            <button
+              onClick={() => {
+                const audio = new Audio('/audio/numbers/01_sifr.mp3');
+                audio.play()
+                  .then(() => console.log('PLAY_SUCCESS'))
+                  .catch((err) => console.error('PLAY_ERROR', err?.name, err?.message));
+              }}
+              className="px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl sm:rounded-2xl font-black text-xs sm:text-sm bg-amber-400 hover:bg-amber-300 text-slate-900 border-2 border-amber-500 shadow-md transition-all active:scale-95 shrink-0"
+              title="اختبار الصوت المباشر"
+            >
+              🔊 اختبار MP3
+            </button>
+
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
@@ -170,6 +184,19 @@ export const Navbar: React.FC<Props> = ({
             <Settings className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
             <span>الإعدادات</span>
           </motion.button>
+
+          {/* Temporary Test MP3 Button */}
+          <button
+            onClick={() => {
+              const audio = new Audio('/audio/numbers/01_sifr.mp3');
+              audio.play()
+                .then(() => console.log('PLAY_SUCCESS'))
+                .catch((err) => console.error('PLAY_ERROR', err?.name, err?.message));
+            }}
+            className="px-3 py-2.5 rounded-2xl font-black text-xs sm:text-sm bg-amber-400 hover:bg-amber-300 text-slate-900 border-2 border-amber-500 shadow-md transition-all active:scale-95"
+          >
+            اختبار صوت MP3
+          </button>
         </nav>
 
       </div>
