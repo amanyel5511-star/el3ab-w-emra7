@@ -80,11 +80,12 @@ export const AchievementsDashboard: React.FC<Props> = ({
               {onOpenSettings && (
                 <button
                   onClick={() => { soundManager.playClick(); onOpenSettings(); }}
-                  className="p-1.5 sm:p-2 bg-teal-100 hover:bg-teal-200 text-teal-900 rounded-xl sm:rounded-2xl border-2 border-teal-300 flex items-center justify-center shadow-xs transition-transform active:scale-90"
+                  className="px-2.5 py-1.5 sm:px-3 sm:py-2 bg-teal-100 hover:bg-teal-200 text-teal-900 rounded-xl sm:rounded-2xl border-2 border-teal-300 flex items-center gap-1.5 shadow-xs transition-transform active:scale-90"
                   title="الإعدادات ⚙️"
                   aria-label="الإعدادات"
                 >
                   <Settings className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5]" />
+                  <span className="font-extrabold text-xs sm:text-sm">الإعدادات</span>
                 </button>
               )}
             </div>

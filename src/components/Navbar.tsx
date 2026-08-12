@@ -168,7 +168,7 @@ export const Navbar: React.FC<Props> = ({
             aria-label="الإعدادات"
           >
             <Settings className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
-            <span className="hidden lg:inline">الإعدادات</span>
+            <span>الإعدادات</span>
           </motion.button>
         </nav>
 
