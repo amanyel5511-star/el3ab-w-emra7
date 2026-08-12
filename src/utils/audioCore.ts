@@ -1,6 +1,7 @@
 // Shared Audio Core Engine for Cross-Platform Web & Mobile Chrome Compatibility
 
 let sharedAudioCtx: AudioContext | null = null;
+let sharedHtmlAudio: HTMLAudioElement | null = null;
 let isAudioUnlocked = false;
 
 // Standardized console error logger for audio diagnostics
@@ -46,6 +47,28 @@ export function getSharedAudioContext(): AudioContext | null {
   return sharedAudioCtx;
 }
 
+// Single Shared HTMLAudioElement getter for reliable mobile MP3 playback
+export function getSharedHTMLAudio(): HTMLAudioElement | null {
+  if (typeof window === 'undefined') return null;
+
+  if (!sharedHtmlAudio) {
+    try {
+      sharedHtmlAudio = new Audio();
+      sharedHtmlAudio.setAttribute('playsinline', 'true');
+      sharedHtmlAudio.setAttribute('webkit-playsinline', 'true');
+      sharedHtmlAudio.preload = 'auto';
+    } catch (err: any) {
+      logAudioError(
+        'HTMLAudio Creation',
+        err?.name || 'InitializationError',
+        err?.message || 'Failed to construct HTMLAudioElement'
+      );
+    }
+  }
+
+  return sharedHtmlAudio;
+}
+
 // Universal User-Gesture Audio Unlocker for Mobile Chrome / iOS Safari
 export function unlockAudioSystem(): boolean {
   const ctx = getSharedAudioContext();
@@ -59,22 +82,46 @@ export function unlockAudioSystem(): boolean {
     });
   }
 
-  if (isAudioUnlocked) return true;
+  if (!isAudioUnlocked) {
+    if (ctx) {
+      // Play silent 1ms buffer to unlock audio hardware pipeline on Mobile Chrome & WebKit
+      try {
+        const silentBuffer = ctx.createBuffer(1, 1, 22050);
+        const source = ctx.createBufferSource();
+        source.buffer = silentBuffer;
+        source.connect(ctx.destination);
+        source.start(0);
+      } catch (err: any) {
+        logAudioError(
+          'Silent Buffer Unlock',
+          err?.name || 'BufferError',
+          err?.message || 'Failed to play silent unlock buffer'
+        );
+      }
+    }
 
-  if (ctx) {
-    // Play silent 1ms buffer to unlock audio hardware pipeline on Mobile Chrome & WebKit
-    try {
-      const silentBuffer = ctx.createBuffer(1, 1, 22050);
-      const source = ctx.createBufferSource();
-      source.buffer = silentBuffer;
-      source.connect(ctx.destination);
-      source.start(0);
-    } catch (err: any) {
-      logAudioError(
-        'Silent Buffer Unlock',
-        err?.name || 'BufferError',
-        err?.message || 'Failed to play silent unlock buffer'
-      );
+    // Unlock HTMLAudioElement media pipeline for Mobile Web / iOS Safari
+    const audio = getSharedHTMLAudio();
+    if (audio) {
+      try {
+        const silentWav = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=';
+        audio.src = silentWav;
+        audio.play().then(() => {
+          isAudioUnlocked = true;
+        }).catch((err) => {
+          logAudioError(
+            'HTMLAudio Unlock',
+            err?.name || 'UnlockError',
+            err?.message || 'HTMLAudioElement unlock attempt failed'
+          );
+        });
+      } catch (err: any) {
+        logAudioError(
+          'HTMLAudio Exception',
+          err?.name || 'Exception',
+          err?.message || 'Failed to initialize HTMLAudioElement unlock'
+        );
+      }
     }
   }
 
@@ -93,7 +140,6 @@ export function unlockAudioSystem(): boolean {
     }
   }
 
-  isAudioUnlocked = true;
   return true;
 }
 
@@ -108,3 +154,4 @@ if (typeof window !== 'undefined') {
   window.addEventListener('click', handleUserGesture, { passive: true });
   window.addEventListener('keydown', handleUserGesture, { passive: true });
 }
+

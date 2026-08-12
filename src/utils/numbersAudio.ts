@@ -1,5 +1,5 @@
 import { ARABIC_NUMBERS, DIGIT_TO_WORD } from '../data/numbersData';
-import { logAudioError, unlockAudioSystem } from './audioCore';
+import { logAudioError, unlockAudioSystem, getSharedHTMLAudio } from './audioCore';
 
 class NumbersAudio {
   private currentAudio: HTMLAudioElement | null = null;
@@ -40,7 +40,17 @@ class NumbersAudio {
 
       let audio: HTMLAudioElement;
       try {
-        audio = new Audio(url);
+        const shared = getSharedHTMLAudio();
+        audio = shared || new Audio();
+        audio.pause();
+        try {
+          audio.currentTime = 0;
+        } catch {
+          // ignore seeking before load
+        }
+        audio.src = url;
+        audio.setAttribute('playsinline', 'true');
+        audio.setAttribute('webkit-playsinline', 'true');
         this.currentAudio = audio;
 
         audio.onerror = (e) => {
