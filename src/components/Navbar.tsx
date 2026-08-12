@@ -123,17 +123,7 @@ export const Navbar: React.FC<Props> = ({
               </div>
             </motion.button>
 
-            {/* Quick Settings Icon */}
-            <motion.button
-              whileHover={{ scale: 1.08 }}
-              whileTap={{ scale: 0.92 }}
-              onClick={() => { soundManager.playClick(); onOpenSettings?.(); }}
-              className="w-8 h-8 sm:w-11 sm:h-11 bg-teal-100 hover:bg-teal-200 text-teal-900 rounded-xl sm:rounded-2xl border-2 border-teal-200 flex items-center justify-center shadow-xs shrink-0"
-              title="إعدادات الملف والتنبيهات"
-              aria-label="الإعدادات"
-            >
-              <Settings className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
-            </motion.button>
+
           </div>
 
         </div>
