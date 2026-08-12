@@ -1,5 +1,4 @@
 import { ARABIC_NUMBERS, DIGIT_TO_WORD } from '../data/numbersData';
-import { speechManager } from './SpeechManager';
 import { logAudioError, unlockAudioSystem } from './audioCore';
 
 class NumbersAudio {
@@ -17,14 +16,12 @@ class NumbersAudio {
     }
   }
 
-  public playAudioUrl(url: string, fallbackText?: string): Promise<void> {
+  public playAudioUrl(url: string): Promise<void> {
     unlockAudioSystem();
     this.stopCurrentAudio();
 
     if (!url) {
-      if (fallbackText) {
-        speechManager.speakArabic(fallbackText);
-      }
+      logAudioError('NumbersAudio', 'MissingUrl', 'No audio URL provided for number');
       return Promise.resolve();
     }
 
@@ -37,10 +34,7 @@ class NumbersAudio {
         if (this.currentAudio === audio) {
           this.currentAudio = null;
         }
-        logAudioError('NumbersAudio', 'AudioPlaybackFallback', `${reason}: ${url}`, err);
-        if (fallbackText) {
-          speechManager.speakArabic(fallbackText);
-        }
+        logAudioError('NumbersAudio', 'AudioPlaybackError', `${reason}: ${url}`, err);
         resolve();
       };
 
@@ -81,11 +75,10 @@ class NumbersAudio {
   public playNumber(numOrWordOrItem: any): Promise<void> {
     if (typeof numOrWordOrItem === 'number') {
       const item = ARABIC_NUMBERS.find(n => n.id === numOrWordOrItem || n.englishDigit === numOrWordOrItem);
-      const word = DIGIT_TO_WORD[numOrWordOrItem] || (item ? item.word : String(numOrWordOrItem));
       if (item && item.audio) {
-        return this.playAudioUrl(item.audio, word);
+        return this.playAudioUrl(item.audio);
       }
-      speechManager.speakArabic(word);
+      logAudioError('NumbersAudio', 'MissingNumberAudio', `No MP3 found for number: ${numOrWordOrItem}`);
       return Promise.resolve();
     }
 
@@ -93,25 +86,24 @@ class NumbersAudio {
       if (numOrWordOrItem.startsWith('/')) {
         return this.playAudioUrl(numOrWordOrItem);
       }
-      const item = ARABIC_NUMBERS.find(n => n.word === numOrWordOrItem || n.digit === numOrWordOrItem);
+      const item = ARABIC_NUMBERS.find(n => n.word === numOrWordOrItem || n.digit === numOrWordOrItem || n.englishDigit === Number(numOrWordOrItem));
       if (item && item.audio) {
-        return this.playAudioUrl(item.audio, item.word);
+        return this.playAudioUrl(item.audio);
       }
-      speechManager.speakArabic(numOrWordOrItem);
+      logAudioError('NumbersAudio', 'MissingNumberAudio', `No MP3 found for string: ${numOrWordOrItem}`);
       return Promise.resolve();
     }
 
     if (numOrWordOrItem && typeof numOrWordOrItem === 'object') {
       if (numOrWordOrItem.audio) {
-        return this.playAudioUrl(numOrWordOrItem.audio, numOrWordOrItem.word);
-      }
-      if (numOrWordOrItem.word) {
-        speechManager.speakArabic(numOrWordOrItem.word);
+        return this.playAudioUrl(numOrWordOrItem.audio);
       }
     }
 
+    logAudioError('NumbersAudio', 'MissingNumberAudio', 'Invalid number item or missing MP3');
     return Promise.resolve();
   }
 }
 
 export const numbersAudio = new NumbersAudio();
+

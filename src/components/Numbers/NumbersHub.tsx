@@ -28,9 +28,9 @@ export const NumbersHub: React.FC<Props> = ({ onEarnStars }) => {
   const playNumberAudio = (audioUrl?: string, fallbackText?: string) => {
     soundManager.playClick();
     if (audioUrl) {
-      numbersAudio.playAudioUrl(audioUrl, fallbackText);
+      numbersAudio.playAudioUrl(audioUrl);
     } else if (fallbackText) {
-      soundManager.speakArabic(fallbackText, 0.8);
+      numbersAudio.playNumber(fallbackText);
     }
   };
 

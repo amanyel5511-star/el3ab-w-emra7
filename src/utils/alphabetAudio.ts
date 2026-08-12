@@ -1,6 +1,5 @@
 import { AlphabetItem } from '../types';
 import { ARABIC_ALPHABET } from '../data/alphabetData';
-import { speechManager } from './SpeechManager';
 import { logAudioError, unlockAudioSystem } from './audioCore';
 
 class AlphabetAudio {
@@ -25,16 +24,14 @@ class AlphabetAudio {
   /**
    * Play an MP3 file given its web URL (e.g. '/audio/alphabet/letters/alif.mp3').
    * Prevents overlap with previous educational audio.
-   * Gracefully handles missing sources and playback restrictions by logging warnings and falling back to SpeechSynthesis.
+   * Exclusively plays local MP3 files and logs warnings if missing or blocked.
    */
-  public playAudioUrl(url: string, fallbackText?: string): Promise<void> {
+  public playAudioUrl(url: string): Promise<void> {
     unlockAudioSystem();
     this.stopCurrentAudio();
 
     if (!url) {
-      if (fallbackText) {
-        speechManager.speakArabic(fallbackText);
-      }
+      logAudioError('AlphabetAudio', 'MissingUrl', 'No audio URL provided for playback');
       return Promise.resolve();
     }
 
@@ -47,10 +44,7 @@ class AlphabetAudio {
         if (this.currentAudio === audio) {
           this.currentAudio = null;
         }
-        logAudioError('AlphabetAudio', 'AudioPlaybackFallback', `${reason}: ${url}`, err);
-        if (fallbackText) {
-          speechManager.speakArabic(fallbackText);
-        }
+        logAudioError('AlphabetAudio', 'AudioPlaybackError', `${reason}: ${url}`, err);
         resolve();
       };
 
@@ -71,7 +65,7 @@ class AlphabetAudio {
         };
 
         audio.play().then(() => {
-          // Successfully started playing
+          // Successfully started playing MP3
         }).catch((err) => {
           if (err?.name === 'AbortError' || err?.message?.includes('interrupted')) {
             if (this.currentAudio === audio) {
@@ -97,12 +91,9 @@ class AlphabetAudio {
       : itemOrId;
 
     if (item && item.letterAudio) {
-      return this.playAudioUrl(item.letterAudio, item.name || item.letter);
+      return this.playAudioUrl(item.letterAudio);
     }
-    const fallback = typeof itemOrId === 'string' ? itemOrId : itemOrId?.name || itemOrId?.letter || '';
-    if (fallback) {
-      speechManager.speakArabic(fallback);
-    }
+    logAudioError('AlphabetAudio', 'MissingLetterAudio', `No MP3 found for letter: ${typeof itemOrId === 'string' ? itemOrId : itemOrId?.name}`);
     return Promise.resolve();
   }
 
@@ -115,12 +106,9 @@ class AlphabetAudio {
       : itemOrId;
 
     if (item && item.fatha && item.fatha.audio) {
-      return this.playAudioUrl(item.fatha.audio, item.fatha.word || item.fatha.text);
+      return this.playAudioUrl(item.fatha.audio);
     }
-    const fallback = item ? item.fatha?.word || item.fatha?.text : '';
-    if (fallback) {
-      speechManager.speakArabic(fallback);
-    }
+    logAudioError('AlphabetAudio', 'MissingFathaAudio', `No MP3 found for Fatha: ${typeof itemOrId === 'string' ? itemOrId : itemOrId?.letter}`);
     return Promise.resolve();
   }
 
@@ -133,12 +121,9 @@ class AlphabetAudio {
       : itemOrId;
 
     if (item && item.kasra && item.kasra.audio) {
-      return this.playAudioUrl(item.kasra.audio, item.kasra.word || item.kasra.text);
+      return this.playAudioUrl(item.kasra.audio);
     }
-    const fallback = item ? item.kasra?.word || item.kasra?.text : '';
-    if (fallback) {
-      speechManager.speakArabic(fallback);
-    }
+    logAudioError('AlphabetAudio', 'MissingKasraAudio', `No MP3 found for Kasra: ${typeof itemOrId === 'string' ? itemOrId : itemOrId?.letter}`);
     return Promise.resolve();
   }
 
@@ -151,12 +136,9 @@ class AlphabetAudio {
       : itemOrId;
 
     if (item && item.damma && item.damma.audio) {
-      return this.playAudioUrl(item.damma.audio, item.damma.word || item.damma.text);
+      return this.playAudioUrl(item.damma.audio);
     }
-    const fallback = item ? item.damma?.word || item.damma?.text : '';
-    if (fallback) {
-      speechManager.speakArabic(fallback);
-    }
+    logAudioError('AlphabetAudio', 'MissingDammaAudio', `No MP3 found for Damma: ${typeof itemOrId === 'string' ? itemOrId : itemOrId?.letter}`);
     return Promise.resolve();
   }
 
@@ -166,52 +148,43 @@ class AlphabetAudio {
   public playWord(itemOrUrlOrText: AlphabetItem | string): Promise<void> {
     if (typeof itemOrUrlOrText === 'string') {
       if (itemOrUrlOrText.startsWith('/')) {
-        const item = ARABIC_ALPHABET.find(a =>
-          a.wordAudio === itemOrUrlOrText ||
-          a.letterAudio === itemOrUrlOrText ||
-          a.fatha?.audio === itemOrUrlOrText ||
-          a.fatha?.wordAudio === itemOrUrlOrText ||
-          a.damma?.audio === itemOrUrlOrText ||
-          a.damma?.wordAudio === itemOrUrlOrText ||
-          a.kasra?.audio === itemOrUrlOrText ||
-          a.kasra?.wordAudio === itemOrUrlOrText
-        );
-        const fallbackText = item ? (item.exampleWord || item.name) : undefined;
-        return this.playAudioUrl(itemOrUrlOrText, fallbackText);
+        return this.playAudioUrl(itemOrUrlOrText);
       }
       const item = ARABIC_ALPHABET.find(a =>
         a.exampleWord === itemOrUrlOrText ||
-        a.fatha.word === itemOrUrlOrText ||
-        a.damma.word === itemOrUrlOrText ||
-        a.kasra.word === itemOrUrlOrText ||
-        a.id === itemOrUrlOrText
+        a.fatha?.word === itemOrUrlOrText ||
+        a.damma?.word === itemOrUrlOrText ||
+        a.kasra?.word === itemOrUrlOrText ||
+        a.id === itemOrUrlOrText ||
+        a.letter === itemOrUrlOrText ||
+        a.name === itemOrUrlOrText
       );
       if (item) {
         if (item.exampleWord === itemOrUrlOrText && item.wordAudio) {
-          return this.playAudioUrl(item.wordAudio, item.exampleWord);
+          return this.playAudioUrl(item.wordAudio);
         }
-        if (item.fatha.word === itemOrUrlOrText && item.fatha.wordAudio) {
-          return this.playAudioUrl(item.fatha.wordAudio, item.fatha.word);
+        if (item.fatha?.word === itemOrUrlOrText && item.fatha.wordAudio) {
+          return this.playAudioUrl(item.fatha.wordAudio);
         }
-        if (item.damma.word === itemOrUrlOrText && item.damma.wordAudio) {
-          return this.playAudioUrl(item.damma.wordAudio, item.damma.word);
+        if (item.damma?.word === itemOrUrlOrText && item.damma.wordAudio) {
+          return this.playAudioUrl(item.damma.wordAudio);
         }
-        if (item.kasra.word === itemOrUrlOrText && item.kasra.wordAudio) {
-          return this.playAudioUrl(item.kasra.wordAudio, item.kasra.word);
+        if (item.kasra?.word === itemOrUrlOrText && item.kasra.wordAudio) {
+          return this.playAudioUrl(item.kasra.wordAudio);
         }
         if (item.wordAudio) {
-          return this.playAudioUrl(item.wordAudio, item.exampleWord);
+          return this.playAudioUrl(item.wordAudio);
         }
       }
-      speechManager.speakArabic(itemOrUrlOrText);
+      logAudioError('AlphabetAudio', 'MissingWordAudio', `No MP3 found for word: ${itemOrUrlOrText}`);
       return Promise.resolve();
     } else if (itemOrUrlOrText && itemOrUrlOrText.wordAudio) {
-      return this.playAudioUrl(itemOrUrlOrText.wordAudio, itemOrUrlOrText.exampleWord);
-    } else if (itemOrUrlOrText && itemOrUrlOrText.exampleWord) {
-      speechManager.speakArabic(itemOrUrlOrText.exampleWord);
+      return this.playAudioUrl(itemOrUrlOrText.wordAudio);
     }
+    logAudioError('AlphabetAudio', 'MissingWordAudio', 'Invalid item or missing wordAudio MP3');
     return Promise.resolve();
   }
 }
 
 export const alphabetAudio = new AlphabetAudio();
+

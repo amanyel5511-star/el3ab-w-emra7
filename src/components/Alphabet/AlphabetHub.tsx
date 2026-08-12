@@ -37,7 +37,7 @@ export const AlphabetHub: React.FC<Props> = ({ onEarnStars, learnedLetters }) =>
 
   const playLetterAudio = (text: string) => {
     soundManager.playClick();
-    soundManager.speakArabic(text, 0.75);
+    alphabetAudio.playLetter(text);
   };
 
   useEffect(() => {
@@ -601,7 +601,7 @@ export const AlphabetHub: React.FC<Props> = ({ onEarnStars, learnedLetters }) =>
                       if (quizQuestion.audioUrl) {
                         alphabetAudio.playAudioUrl(quizQuestion.audioUrl);
                       } else if (quizQuestion.audioSpeech) {
-                        soundManager.speakArabic(quizQuestion.audioSpeech);
+                        alphabetAudio.playWord(quizQuestion.audioSpeech);
                       }
                     }}
                     className="px-6 py-3 bg-teal-600 hover:bg-teal-500 text-white rounded-2xl font-black text-base flex items-center gap-2 shadow-xs active:scale-95"
