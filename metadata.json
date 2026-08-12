@@ -1,0 +1,10 @@
+{
+  "name": "Remix Remix 🎈 ألعب وأمرح - كتاب تفاعلي للأطفال",
+  "description": "كتاب تفاعلي ممتع للأطفال يحتوي على 20 لعبة تعليمية مكتملة، كتاب تلوين غني بفئات متعددة، تعليم الحروف العربية بالتتبع والصوت، ونظام إنجازات تشجيعي.",
+  "requestFramePermissions": [
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
